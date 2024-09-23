@@ -21,6 +21,7 @@ static PROC: &Process = bern_kernel::new_process!(my_process, 8192);
 
 #[entry]
 fn main() -> ! {
+    //take control (ownership) of all the peripherals
     let p = Peripherals::take()
         .expect("cannot take stm32 peripherals");
 
@@ -29,7 +30,10 @@ fn main() -> ! {
 
     // Set-up GPIOs
     let gpiog = p.GPIOG.split();
-    let mut led = gpioa.pg13.into_push_pull_output().erase();
+    let mut led = gpiog.pg13.into_push_pull_output().erase();
+
+    let mut led2 = gpiog.pg14.into_push_pull_output().erase();
+    // Another led maybe at gipio pg14 
 
     bern_kernel::time::set_tick_frequency(
         1.kHz(),
@@ -50,7 +54,20 @@ fn main() -> ! {
                     sleep(800);
                 }
             });
-    }).unwrap();
 
+        Thread::new(c)
+        .priority(Priority::new(0))
+        .stack(Stack::try_new_in(c, 1024).unwrap())
+        .spawn(move || {
+            loop {
+                led2.set_high();
+                sleep(250);
+                led2.set_low();
+                sleep(850);
+            }
+        });
+    }).unwrap();
+    //LE TASK INIZIANO QUI PORCODDIO
+    //TODO LEGGERE BERN DOCUMENTATION
     bern_kernel::start();
 }
