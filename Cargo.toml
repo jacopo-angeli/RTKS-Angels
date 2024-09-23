@@ -12,7 +12,7 @@ bern-kernel = "0.3"
 
 # Adjust here and in `.cargo/conf.toml` for your device.
 [dependencies.stm32f4xx-hal]
-features = ["stm32f411"]
+features = ["stm32f429"]
 version = "0.13"
 
 # this lets you use `cargo fix`!

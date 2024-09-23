@@ -28,7 +28,7 @@ fn main() -> ! {
     let _clock = rcc.cfgr.sysclk(stm32f4xx_hal::prelude::_fugit_RateExtU32::MHz(48)).freeze();
 
     // Set-up GPIOs
-    let gpioa = p.GPIOG.split();
+    let gpiog = p.GPIOG.split();
     let mut led = gpioa.pg13.into_push_pull_output().erase();
 
     bern_kernel::time::set_tick_frequency(
