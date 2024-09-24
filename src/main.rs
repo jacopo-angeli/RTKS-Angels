@@ -1,6 +1,5 @@
 #![no_std]
 #![no_main]
-#![feature(default_alloc_error_handler)]
 
 use panic_halt as _;
 use cortex_m_rt::entry;
@@ -43,9 +42,10 @@ fn main() -> ! {
     // Create a new process.
     // All threads within a process share the same protected memory region.
     PROC.init(move |c| {
+
         Thread::new(c)
             .priority(Priority::new(0))
-            .stack(Stack::try_new_in(c, 1024).unwrap())
+            .stack(Stack::try_new_in(c, 128).unwrap())
             .spawn(move || {
                 loop {
                     led.set_high();
@@ -55,17 +55,6 @@ fn main() -> ! {
                 }
             });
 
-        Thread::new(c)
-        .priority(Priority::new(0))
-        .stack(Stack::try_new_in(c, 1024).unwrap())
-        .spawn(move || {
-            loop {
-                led2.set_high();
-                sleep(250);
-                led2.set_low();
-                sleep(850);
-            }
-        });
     }).unwrap();
     //LE TASK INIZIANO QUI PORCODDIO
     //TODO LEGGERE BERN DOCUMENTATION
