@@ -20,43 +20,26 @@ use rtt_target::{rtt_init_print, rprintln};
 
 static PROC: &Process = bern_kernel::new_process!(my_process1, 8192);
 
+
+mod regular_produces;
+
 #[entry]
 fn main() -> ! {
     rtt_init_print!();
     let dp = f4::pac::Peripherals::take().expect("Peripherals cannot be accessed");
 
-    let gpio_d = dp.GPIOD.split();
+    let gpio_g = dp.GPIOG.split();
 
-    let mut green_led = gpio_d.pd12.into_push_pull_output();
-    let mut blue_led = gpio_d.pd15.into_push_pull_output();
+    let mut green_led = gpio_g.pg13.into_push_pull_output();
+    let mut blue_led = gpio_g.pg14.into_push_pull_output();
 
     bern_kernel::kernel::init();
-    bern_kernel::time::set_tick_frequency(1.kHz(), 100.MHz());
+    bern_kernel::time::set_tick_frequency(2.kHz(), 180.MHz());
 
     PROC.init(move |c| {
-        Thread::new(c)
-            .priority(Priority::new(0))
-            .stack(Stack::try_new_in(c, 1024).unwrap())
-            .spawn(move || {
-                loop {
-                    green_led.set_high();
-                    sleep(100);
-                    green_led.set_low();
-                    sleep(100);
-                    rprintln!("Green led cycle done.");
-                }
-            });
-        Thread::new(c)
-            .priority(Priority::new(0))
-            .stack(Stack::try_new_in(c, 1024).unwrap())
-            .spawn(move || {
-                loop {
-                    blue_led.set_high();
-                    sleep(50);
-                    blue_led.set_low();
-                    sleep(50);
-                }
-            });
+        // Regular producer
+        regular_produces::spawn_green_led_thread(blue_led, c);
+        
     }).unwrap();
 
     bern_kernel::start()
