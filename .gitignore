@@ -1,2 +1,5 @@
-/target
+target/
+.vscode/
+.github/
 Cargo.lock
+run.txt
