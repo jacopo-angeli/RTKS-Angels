@@ -5,7 +5,6 @@
 #![feature(proc_macro_hygiene)]
 #![feature(let_chains)]
 
-mod constant;
 mod tasks;
 mod types;
 mod utils;
@@ -13,7 +12,6 @@ mod utils;
 #[rtic::app(device = stm32f4xx_hal::pac, dispatchers = [USART1, USART2, USART3, TIM3, TIM2])]
 mod app {
 
-    use crate::constant::BUFFER_CAPACITY;
     use crate::tasks::regular_producer::*;
     use crate::tasks::on_call_producer::*;
     use crate::tasks::activation_log_reader::*;
@@ -72,14 +70,14 @@ mod app {
         #[task(priority = 6)]
         async fn regular_producer(
             cx: regular_producer::Context,
-            mut send1: Sender<'static, u32, BUFFER_CAPACITY>,
+            mut send1: Sender<'static, u32, 5>,
             mut send2: Sender<'static, u32, 1>,
         );
 
         #[task(priority = 4)]
         async fn on_call_producer(
             cx: on_call_producer::Context,
-            mut recv: Receiver<'static, u32, BUFFER_CAPACITY>,
+            mut recv: Receiver<'static, u32, 5>,
         );
 
         // this task is a sporadic task that serve an aperiodic (hardware) interrupt
