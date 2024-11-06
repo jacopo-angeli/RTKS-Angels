@@ -14,8 +14,10 @@ mod utils;
 mod app {
 
     use crate::constant::BUFFER_CAPACITY;
-    use crate::tasks::periodic::*;
-    use crate::tasks::sporadic::*;
+    use crate::tasks::regular_producer::*;
+    use crate::tasks::on_call_producer::*;
+    use crate::tasks::activation_log_reader::*;
+    use crate::tasks::external_event_server::*;
     use crate::types::activation_log::ActivationLog;
 
     use cortex_m_semihosting::hprintln;
@@ -83,9 +85,6 @@ mod app {
         // this task is a sporadic task that serve an aperiodic (hardware) interrupt
         #[task(priority = 7, shared = [&actv_log])]
         async fn external_event_server(mut cx: external_event_server::Context);
-
-        #[task(priority = 8)]
-        async fn emit_hardware_interrupt(cx: emit_hardware_interrupt::Context);
 
         #[task(priority = 2, shared = [&actv_log])]
         async fn activation_log_reader(
