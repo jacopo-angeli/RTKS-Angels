@@ -4,7 +4,9 @@ use crate::app::{self, Mono};
 use rtic_monotonics::{fugit::MillisDurationU32, Monotonic};
 use crate::{
     types::production_workload::ProductionWorkload,
-    utils::{activation_condition, get_instant},
+    utils::get_instant,
+    on_call_prod_activation::prod_activation_condition,
+    log_reader_activation::log_activation_condition,
 };
 
 pub async fn regular_producer(
@@ -22,13 +24,13 @@ pub async fn regular_producer(
         hprintln!("regular producer started at { }", instant);
         production_workload.small_whetstone(REGULAR_PRODUCER_WORKLOAD);
 
-        if activation_condition::on_call_prod_activation_criterion()
+        if prod_activation_condition::on_call_prod_activation_condition()
             && let Err(_) = on_call_prod_sender.try_send(ON_CALL_PRODUCER_WORKLOAD)
         {
             hprintln!("on call producer activation failed due to full buffer")
         }
 
-        if activation_condition::activation_log_reader_criterion()
+        if log_activation_condition::activation_log_reader_condition()
             && let Err(_) = activation_log_reader_sender.try_send(0)
         {
             hprintln!("activation log reader failed due to full buffer")
