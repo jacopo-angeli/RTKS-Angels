@@ -5,7 +5,7 @@ use rtic_monotonics::{fugit::MillisDurationU32, Monotonic};
 use crate::app::{self, Mono};
 use crate::{
     types::production_workload::ProductionWorkload,
-    utils::get_instant,
+    utils::get_instant::*,
 };
 
 pub async fn activation_log_reader(

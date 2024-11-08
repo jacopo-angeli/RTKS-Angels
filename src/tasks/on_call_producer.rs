@@ -3,7 +3,7 @@ use rtic_monotonics::{fugit::MillisDurationU32, Monotonic};
 use rtic_sync::channel::Receiver;
 
 use crate::app::{self, Mono};
-use crate::{types::production_workload::ProductionWorkload, utils::get_instant};
+use crate::{types::production_workload::ProductionWorkload, utils::get_instant::*};
 
 pub async fn on_call_producer(
     _: app::on_call_producer::Context<'_>,

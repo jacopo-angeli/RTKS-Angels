@@ -1,5 +1,5 @@
 use rtic_monotonics::{fugit::MillisDurationU32, Monotonic};
-use crate::utils::get_instant;
+use crate::utils::get_instant::*;
 
 use cortex_m_semihosting::hprintln;
 use crate::app::{self, Mono};

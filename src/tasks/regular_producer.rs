@@ -4,9 +4,9 @@ use crate::app::{self, Mono};
 use rtic_monotonics::{fugit::MillisDurationU32, Monotonic};
 use crate::{
     types::production_workload::ProductionWorkload,
-    utils::get_instant,
-    on_call_prod_activation::prod_activation_condition,
-    log_reader_activation::log_activation_condition,
+    utils::get_instant::*,
+    utils::on_call_activation::prod_activation_condition,
+    utils::log_reader_activation::log_activation_condition,
 };
 
 pub async fn regular_producer(

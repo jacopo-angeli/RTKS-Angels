@@ -1,9 +1,4 @@
 #[allow(dead_code)]
-use crate::types::time::TimeStamp;
-use rtic_monotonics::Monotonic;
-
-use crate::app::Mono;
-
 pub mod log_activation_condition {
     use core::sync::atomic::AtomicI32;
     use core::sync::atomic::Ordering;
