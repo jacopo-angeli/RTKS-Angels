@@ -19,13 +19,13 @@ pub async fn activation_log_reader(
     while let Ok(_) = actv_recv.recv().await {
         // as on_call_producer here task can be preempted
         let instant = get_instant();
-        hprintln!("activation log reader started at {}", instant);
+        hprintln!("ALR: started at {}", instant);
 
         production_workload.small_whetstone(WORKLOAD);
 
         match cx.shared.actv_log.read() {
             Ok((last_actv_counter, last_actv_instant)) => hprintln!(
-                "Read activation number {} logged at time {}",
+                "ALR: activation number {} logged at time {}",
                 last_actv_counter,
                 last_actv_instant
             ),
@@ -33,7 +33,7 @@ pub async fn activation_log_reader(
         }
 
         let final_instant = get_instant();
-        hprintln!("activation log reader finished at {}", final_instant);
+        hprintln!("ALR: finished at {}", final_instant);
 
         Mono::delay_until(instant + MIN_SEP).await;
     }

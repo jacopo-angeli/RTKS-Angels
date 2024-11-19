@@ -21,23 +21,29 @@ pub async fn regular_producer(
 
     loop {
         let instant = get_instant();
-        hprintln!("regular producer started at { }", instant);
+        hprintln!("RP: started at { }", instant);
         production_workload.small_whetstone(REGULAR_PRODUCER_WORKLOAD);
 
         if prod_activation_condition::on_call_prod_activation_condition()
-            && let Err(_) = on_call_prod_sender.try_send(ON_CALL_PRODUCER_WORKLOAD)
         {
-            hprintln!("on call producer activation failed due to full buffer")
+            match on_call_prod_sender.try_send(ON_CALL_PRODUCER_WORKLOAD)
+            {
+                Ok(_) => hprintln!("RP: on call producer buffer updated"),
+                Err(_) => hprintln!("RP: on call producer buffer full")
+            }
         }
 
         if log_activation_condition::activation_log_reader_condition()
-            && let Err(_) = activation_log_reader_sender.try_send(0)
         {
-            hprintln!("activation log reader failed due to full buffer")
+            match activation_log_reader_sender.try_send(0)
+            {
+                Ok(_) => hprintln!("RP: activation log reader buffer updated"),
+                Err(_) => hprintln!("RP: activation log reader buffer full")
+            }
         }
 
         let final_instant = get_instant();
-        hprintln!("regular producer finished at { }", final_instant);
+        hprintln!("RP: finished at { }", final_instant);
 
         Mono::delay_until(instant + PERIOD).await;
     }
