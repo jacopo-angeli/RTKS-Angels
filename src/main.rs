@@ -9,8 +9,9 @@ mod tasks;
 mod types;
 mod utils;
 
-#[rtic::app(device = stm32f4xx_hal::pac, dispatchers = [USART1, USART2, USART3, TIM3, TIM2])]
+#[rtic::app(device = stm32f4xx_hal::pac, dispatchers = [USART1, USART2, USART3, TIM3])]
 mod app {
+    use stm32f4xx_hal::{pac, prelude::*, rcc::RccExt};
 
     use crate::tasks::activation_log_reader::*;
     use crate::tasks::external_event_server::*;
@@ -37,12 +38,6 @@ mod app {
     // local resources
     #[local]
     struct Local {}
-
-    #[idle]
-    fn idle(_: idle::Context) -> ! {
-        hprintln!("idle");
-        loop {}
-    }
 
     #[init]
     fn init(cx: init::Context) -> (Shared, Local) {
@@ -75,7 +70,16 @@ mod app {
         //      achieve high-quality audio performance on the I2S and SAI1 interfaces. PLLSAI is also
         //      used for the LCD-TFT clock.
 
-        Mono::start(cx.core.SYST, 30_000_000);
+        let dp: pac::Peripherals = cx.device;
+        let rcc = dp.RCC.constrain();
+        let clocks = rcc
+            .cfgr
+            .use_hse(8.MHz()) // HSE clock: 8 MHz
+            .sysclk(180.MHz()) // System clock: 180 MHz
+            .require_pll48clk() // USB/SDIO requires 48 MHz PLL clock
+            .freeze();
+        hprintln!("System clock: {} MHz", clocks.sysclk() / 1000000);
+        Mono::start(cx.core.SYST, clocks.sysclk().to_Hz());
 
         let (on_call_prod_sender, on_call_prod_recv) = make_channel!(u32, 5);
         let (actv_log_reader_sender, actv_log_reader_recv) = make_channel!(u32, 1);

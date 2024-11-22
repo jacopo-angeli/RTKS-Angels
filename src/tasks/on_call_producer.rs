@@ -15,12 +15,12 @@ pub async fn on_call_producer(
     while let Ok(work) = receiver.recv().await {
         // here task can be preempted, in that case it suffers jitter
         let instant = get_instant();
-        hprintln!("on call producer started at {}", instant);
+        hprintln!("OCP: started at {}", instant);
 
         production_workload.small_whetstone(work);
 
         let final_instant = get_instant();
-        hprintln!("on call producer finished at {}", final_instant);
+        hprintln!("OCP: finished at {}", final_instant);
 
         Mono::delay_until(instant + MIN_SEP).await
     }
