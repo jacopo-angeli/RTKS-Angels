@@ -8,16 +8,20 @@
 mod tasks;
 mod types;
 mod utils;
+mod config;
+
 
 #[rtic::app(device = stm32f4xx_hal::pac, dispatchers = [USART1, USART2, USART3, TIM3])]
 mod app {
+    use heapless::spsc::Queue;
+    use stm32f4xx_hal::rtc::Event;
     use stm32f4xx_hal::{pac, prelude::*, rcc::RccExt};
 
+    use crate::config::*;
     use crate::tasks::activation_log_reader::*;
     use crate::tasks::external_event_server::*;
     use crate::tasks::on_call_producer::*;
     use crate::tasks::regular_producer::*;
-    use crate::types::activation_log::ActivationLog;
 
     use cortex_m_semihosting::hprintln;
     use panic_semihosting as _;
@@ -32,7 +36,8 @@ mod app {
     // shared resources
     #[shared]
     struct Shared {
-        actv_log: ActivationLog,
+        actv_log: u32,
+        event_queue: Queue<Event, 10>,
     }
 
     // local resources
@@ -78,7 +83,14 @@ mod app {
             .sysclk(180.MHz()) // System clock: 180 MHz
             .require_pll48clk() // USB/SDIO requires 48 MHz PLL clock
             .freeze();
-        hprintln!("System clock: {} MHz", clocks.sysclk() / 1000000);
+        
+        // RUN SETTINGS
+        hprintln!("RP;{};{};{};{}", REGULAR_PRODUCER_WORKLOAD, REGULAR_PRODUCER_DEADLINE, REGULAR_PRODUCER_PERIOD, 7);
+        hprintln!("OCP;{};{};{};{}", ON_CALL_PRODUCER_WORKLOAD, ON_CALL_PRODUCER_DEADLINE, ON_CALL_PRODUCER_MIAP, 5);
+        hprintln!("ALR;{};{};{};{}", ACTIVATION_LOG_READER_WORKLOAD, ACTIVATION_LOG_READER_DEADLINE, ACTIVATION_LOG_READER_MIAP, 3);
+        hprintln!("EES;;{};{};{}", EXTERNAL_EVENT_SERVER_DEADLINE, EXTERNAL_EVENT_SERVER_MIAP, 11);
+
+
         Mono::start(cx.core.SYST, clocks.sysclk().to_Hz());
 
         let (on_call_prod_sender, on_call_prod_recv) = make_channel!(u32, 5);
@@ -91,7 +103,8 @@ mod app {
 
         (
             Shared {
-                actv_log: ActivationLog::build(),
+                actv_log: 0,
+                event_queue: Queue::new()
             },
             Local {},
         )
@@ -113,10 +126,10 @@ mod app {
         );
 
         // this task is a sporadic task that serve an aperiodic (hardware) interrupt
-        #[task(priority = 11, shared = [&actv_log])]
+        #[task(priority = 11, shared = [actv_log, event_queue])]
         async fn external_event_server(mut cx: external_event_server::Context);
 
-        #[task(priority = 3, shared = [&actv_log])]
+        #[task(priority = 3, shared = [actv_log])]
         async fn activation_log_reader(
             mut cx: activation_log_reader::Context,
             mut recv1: Receiver<'static, u32, 1>,

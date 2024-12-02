@@ -1,20 +1,36 @@
-use rtic_monotonics::{fugit::MillisDurationU32, Monotonic};
-use crate::utils::get_instant::*;
+#![allow(unsafe_code)]
 
+use crate::{
+    app::{self, Mono},
+    config::*,
+    utils::get_instant::*,
+};
 use cortex_m_semihosting::hprintln;
-use crate::app::{self, Mono};
+use rtic::Mutex;
+use rtic_monotonics::Monotonic;
 
-pub async fn external_event_server(cx: app::external_event_server::Context<'_>) {
-    const MIN_SEP: MillisDurationU32 = MillisDurationU32::millis(5000);
+pub async fn external_event_server(mut cx: app::external_event_server::Context<'_>) {
     loop {
         let instant = get_instant();
-        hprintln!("PBS: started at {}", instant);
+        hprintln!("EES; start; {}; ; ;", instant);
 
-        cortex_m::interrupt::free(|cs| cx.shared.actv_log.write(cs));
+        cx.shared.event_queue.lock(|event_queue| {
+            while let Some(_event) = event_queue.dequeue() {
+                // manage event
+            }
+        });
+        
+        cx.shared.actv_log.lock(|actv_log| {
+            *actv_log = *actv_log + 1;
+        });
 
         let final_instant = get_instant();
-        hprintln!("PBS: finished at {}", final_instant);
+        hprintln!(
+            "EES; finished; {}; {}; ;",
+            final_instant,
+            final_instant - instant
+        );
 
-        Mono::delay_until(instant + MIN_SEP).await;
+        Mono::delay_until(instant + EXTERNAL_EVENT_SERVER_MIAP).await;
     }
 }
