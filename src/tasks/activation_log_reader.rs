@@ -6,8 +6,8 @@ use crate::{
     app::{self, Mono},
     config::*,
 };
-use rtic::Mutex;
 use crate::{types::production_workload::ProductionWorkload, utils::get_instant::*};
+use rtic::Mutex;
 
 pub async fn activation_log_reader(
     mut cx: app::activation_log_reader::Context<'_>,
@@ -28,9 +28,14 @@ pub async fn activation_log_reader(
 
         let final_instant = get_instant();
         hprintln!(
-            "ALR; finished; {}; {}; ;",
+            "ALR; finished; {}; {}; {};",
             final_instant,
-            final_instant - instant
+            final_instant - instant,
+            if (final_instant - instant) > ACTIVATION_LOG_READER_DEADLINE {
+                "x"
+            } else {
+                ""
+            }
         );
 
         Mono::delay_until(instant + ACTIVATION_LOG_READER_MIAP).await;

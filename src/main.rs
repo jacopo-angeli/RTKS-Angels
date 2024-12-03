@@ -90,9 +90,6 @@ mod app {
         hprintln!("ALR;{};{};{};{}", ACTIVATION_LOG_READER_WORKLOAD, ACTIVATION_LOG_READER_DEADLINE, ACTIVATION_LOG_READER_MIAP, 3);
         hprintln!("EES;;{};{};{}", EXTERNAL_EVENT_SERVER_DEADLINE, EXTERNAL_EVENT_SERVER_MIAP, 11);
 
-
-        Mono::start(cx.core.SYST, clocks.sysclk().to_Hz());
-
         let (on_call_prod_sender, on_call_prod_recv) = make_channel!(u32, 5);
         let (actv_log_reader_sender, actv_log_reader_recv) = make_channel!(u32, 1);
 
@@ -101,6 +98,7 @@ mod app {
         external_event_server::spawn().ok();
         activation_log_reader::spawn(actv_log_reader_recv).ok();
 
+        Mono::start(cx.core.SYST, clocks.sysclk().to_Hz());
         (
             Shared {
                 actv_log: 0,

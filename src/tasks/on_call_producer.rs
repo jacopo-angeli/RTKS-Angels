@@ -2,7 +2,10 @@ use cortex_m_semihosting::hprintln;
 use rtic_monotonics::Monotonic;
 use rtic_sync::channel::Receiver;
 
-use crate::{app::{self, Mono}, config::*};
+use crate::{
+    app::{self, Mono},
+    config::*,
+};
 use crate::{types::production_workload::ProductionWorkload, utils::get_instant::*};
 
 pub async fn on_call_producer(
@@ -19,7 +22,16 @@ pub async fn on_call_producer(
         production_workload.small_whetstone(work);
 
         let final_instant = get_instant();
-        hprintln!("OCP; finished; {}; {}; ;", final_instant, final_instant-instant);
+        hprintln!(
+            "OCP; finished; {}; {}; {};",
+            final_instant,
+            final_instant - instant,
+            if (final_instant - instant) > ON_CALL_PRODUCER_DEADLINE {
+                "x"
+            } else {
+                ""
+            }
+        );
 
         Mono::delay_until(instant + ON_CALL_PRODUCER_MIAP).await
     }

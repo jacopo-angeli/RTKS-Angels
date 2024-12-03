@@ -26,9 +26,14 @@ pub async fn external_event_server(mut cx: app::external_event_server::Context<'
 
         let final_instant = get_instant();
         hprintln!(
-            "EES; finished; {}; {}; ;",
+            "EES; finished; {}; {}; {};",
             final_instant,
-            final_instant - instant
+            final_instant - instant,
+            if (final_instant - instant) > EXTERNAL_EVENT_SERVER_DEADLINE {
+                "x"
+            } else {
+                ""
+            }
         );
 
         Mono::delay_until(instant + EXTERNAL_EVENT_SERVER_MIAP).await;

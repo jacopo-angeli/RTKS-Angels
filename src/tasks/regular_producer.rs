@@ -48,9 +48,14 @@ pub async fn regular_producer(
         // Log end time
         let end_instant = get_instant();
         hprintln!(
-            "RP; finished; {}; {}; ;",
+            "RP; finished; {}; {}; {};",
             end_instant,
-            end_instant - start_instant
+            end_instant - start_instant,
+            if (end_instant - start_instant) > REGULAR_PRODUCER_DEADLINE {
+                "x"
+            } else {
+                ""
+            }
         );
 
         // Wait until the next period
