@@ -7,6 +7,7 @@ pub mod log_activation_condition {
     const LOG_READER_ACTV_RATIO: i32 = 3;
     static LOG_READER_ACTV_REQUEST: AtomicI32 = AtomicI32::new(0);
 
+    
     pub fn activation_log_reader_condition() -> bool {
         LOG_READER_ACTV_REQUEST.fetch_add(1, Ordering::Relaxed);
         LOG_READER_ACTV_REQUEST.load(Ordering::Relaxed)

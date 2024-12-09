@@ -21,6 +21,7 @@ pub async fn external_event_server(mut cx: app::external_event_server::Context<'
         });
         
         cx.shared.actv_log.lock(|actv_log| {
+            
             *actv_log = *actv_log + 1;
         });
 

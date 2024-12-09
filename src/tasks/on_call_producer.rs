@@ -14,6 +14,8 @@ pub async fn on_call_producer(
 ) {
     let mut production_workload: ProductionWorkload = Default::default();
 
+    // Ciò che rende sporadica questa task è il regular producer che ogni due attivazioni
+    // da del lavoro da fare
     while let Ok(work) = receiver.recv().await {
         // here task can be preempted, in that case it suffers jitter
         let instant = get_instant();

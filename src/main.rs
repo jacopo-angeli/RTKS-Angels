@@ -5,11 +5,10 @@
 #![feature(proc_macro_hygiene)]
 #![feature(let_chains)]
 
+mod config;
 mod tasks;
 mod types;
 mod utils;
-mod config;
-
 
 #[rtic::app(device = stm32f4xx_hal::pac, dispatchers = [USART1, USART2, USART3, TIM3])]
 mod app {
@@ -31,7 +30,7 @@ mod app {
         make_channel,
     };
 
-    systick_monotonic!(Mono, 1000); // Mono is a monotonic timer that interrupts with rate 1khz, a.k.a 1 ms
+    systick_monotonic!(Mono, 1000000); // Mono is a monotonic timer that interrupts with rate 1Mhz
 
     // shared resources
     #[shared]
@@ -83,26 +82,55 @@ mod app {
             .sysclk(180.MHz()) // System clock: 180 MHz
             .require_pll48clk() // USB/SDIO requires 48 MHz PLL clock
             .freeze();
-        
-        // RUN SETTINGS
-        hprintln!("RP;{};{};{};{}", REGULAR_PRODUCER_WORKLOAD, REGULAR_PRODUCER_DEADLINE, REGULAR_PRODUCER_PERIOD, 7);
-        hprintln!("OCP;{};{};{};{}", ON_CALL_PRODUCER_WORKLOAD, ON_CALL_PRODUCER_DEADLINE, ON_CALL_PRODUCER_MIAP, 5);
-        hprintln!("ALR;{};{};{};{}", ACTIVATION_LOG_READER_WORKLOAD, ACTIVATION_LOG_READER_DEADLINE, ACTIVATION_LOG_READER_MIAP, 3);
-        hprintln!("EES;;{};{};{}", EXTERNAL_EVENT_SERVER_DEADLINE, EXTERNAL_EVENT_SERVER_MIAP, 11);
 
+        // RUN SETTINGS
+        hprintln!(
+            "RP;{};{};{};{}",
+            REGULAR_PRODUCER_WORKLOAD,
+            REGULAR_PRODUCER_DEADLINE,
+            REGULAR_PRODUCER_PERIOD,
+            7
+        );
+        hprintln!(
+            "OCP;{};{};{};{}",
+            ON_CALL_PRODUCER_WORKLOAD,
+            ON_CALL_PRODUCER_DEADLINE,
+            ON_CALL_PRODUCER_MIAP,
+            5
+        );
+        hprintln!(
+            "ALR;{};{};{};{}",
+            ACTIVATION_LOG_READER_WORKLOAD,
+            ACTIVATION_LOG_READER_DEADLINE,
+            ACTIVATION_LOG_READER_MIAP,
+            3
+        );
+        hprintln!(
+            "EES;;{};{};{}",
+            EXTERNAL_EVENT_SERVER_DEADLINE,
+            EXTERNAL_EVENT_SERVER_MIAP,
+            11
+        );
+
+        // Channels
         let (on_call_prod_sender, on_call_prod_recv) = make_channel!(u32, 5);
         let (actv_log_reader_sender, actv_log_reader_recv) = make_channel!(u32, 1);
 
+        // Tasks
         regular_producer::spawn(on_call_prod_sender, actv_log_reader_sender).ok();
         on_call_producer::spawn(on_call_prod_recv).ok();
         external_event_server::spawn().ok();
         activation_log_reader::spawn(actv_log_reader_recv).ok();
 
+        hprintln!("{}", clocks.sysclk().to_Hz());
+
+        // Scheduling
         Mono::start(cx.core.SYST, clocks.sysclk().to_Hz());
+
         (
             Shared {
                 actv_log: 0,
-                event_queue: Queue::new()
+                event_queue: Queue::new(),
             },
             Local {},
         )
