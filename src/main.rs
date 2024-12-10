@@ -30,7 +30,7 @@ mod app {
         make_channel,
     };
 
-    systick_monotonic!(Mono, 1000000); // Mono is a monotonic timer that interrupts with rate 1Mhz
+    systick_monotonic!(Mono, 100000); // Mono is a monotonic timer that interrupts with rate 1Mhz
 
     // shared resources
     #[shared]
@@ -42,6 +42,7 @@ mod app {
     // local resources
     #[local]
     struct Local {}
+
 
     #[init]
     fn init(cx: init::Context) -> (Shared, Local) {

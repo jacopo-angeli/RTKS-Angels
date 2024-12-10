@@ -22,8 +22,8 @@ pub async fn activation_log_reader(
 
         production_workload.small_whetstone(ACTIVATION_LOG_READER_WORKLOAD);
 
-        cx.shared.actv_log.lock(|actv_log| {
-            hprintln!("ALR; read; {}", actv_log);
+        cx.shared.actv_log.lock(|_actv_log| {
+            // hprintln!("ALR; read; {}", actv_log);
         });
 
         let final_instant = get_instant();
